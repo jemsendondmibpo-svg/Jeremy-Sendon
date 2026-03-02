@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Package, 
   LayoutDashboard, 
@@ -395,9 +395,29 @@ const SignUpPage = ({ onSignUp, onNavigateToLogin }: { onSignUp: () => void, onN
 const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [items, setItems] = useState<InventoryItem[]>(INITIAL_ITEMS);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('All');
+  const [filterStatus, setFilterStatus] = useState<string>('All');
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'inventory' | 'reports' | 'settings'>('dashboard');
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 800 * 1024) {
+        alert('File size exceeds 800K limit');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -410,10 +430,14 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     totalValue: items.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0)
   };
 
-  const filteredItems = items.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
+    const matchesStatus = filterStatus === 'All' || item.status === filterStatus;
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   const handleSaveItem = (data: Partial<InventoryItem>) => {
     const status = calculateStatus(data.quantity || 0, data.minStock || 0);
@@ -607,8 +631,12 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 <p className="text-sm font-bold text-slate-800">Admin User</p>
                 <p className="text-xs text-slate-500">Inventory Manager</p>
               </div>
-              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-brand-lime rounded-full flex items-center justify-center text-white font-bold text-sm lg:text-base">
-                AU
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-brand-lime rounded-full flex items-center justify-center text-white font-bold text-sm lg:text-base overflow-hidden">
+                {userAvatar ? (
+                  <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  'AU'
+                )}
               </div>
             </div>
           </div>
@@ -725,9 +753,76 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                   <div className="p-4 lg:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <h3 className="font-bold text-slate-800 font-display">Stock List</h3>
                     <div className="flex items-center gap-2 lg:gap-3">
-                      <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                        <Filter size={16} /> Filter
-                      </button>
+                      <div className="relative">
+                        <button 
+                          onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+                          className={`flex items-center justify-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold transition-all ${isFilterMenuOpen || filterCategory !== 'All' || filterStatus !== 'All' ? 'bg-brand-lime/10 border-brand-lime text-brand-lime' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          <Filter size={16} /> Filter
+                          {(filterCategory !== 'All' || filterStatus !== 'All') && (
+                            <span className="w-2 h-2 bg-brand-lime rounded-full"></span>
+                          )}
+                        </button>
+                        
+                        <AnimatePresence>
+                          {isFilterMenuOpen && (
+                            <>
+                              <div className="fixed inset-0 z-[60]" onClick={() => setIsFilterMenuOpen(false)}></div>
+                              <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 z-[70] p-4 space-y-4"
+                              >
+                                <div>
+                                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                                  <select 
+                                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-lime/20"
+                                    value={filterCategory}
+                                    onChange={(e) => setFilterCategory(e.target.value)}
+                                  >
+                                    <option value="All">All Categories</option>
+                                    {categories.map(cat => (
+                                      <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
+                                  <select 
+                                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-lime/20"
+                                    value={filterStatus}
+                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                  >
+                                    <option value="All">All Statuses</option>
+                                    <option value="In Stock">In Stock</option>
+                                    <option value="Low Stock">Low Stock</option>
+                                    <option value="Out of Stock">Out of Stock</option>
+                                  </select>
+                                </div>
+                                <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
+                                  <button 
+                                    onClick={() => {
+                                      setFilterCategory('All');
+                                      setFilterStatus('All');
+                                      setIsFilterMenuOpen(false);
+                                    }}
+                                    className="text-xs font-bold text-slate-400 hover:text-slate-600"
+                                  >
+                                    Reset Filters
+                                  </button>
+                                  <button 
+                                    onClick={() => setIsFilterMenuOpen(false)}
+                                    className="px-3 py-1.5 bg-brand-lime text-white rounded-lg text-xs font-bold"
+                                  >
+                                    Apply
+                                  </button>
+                                </div>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </div>
                       <button 
                         onClick={openAddModal}
                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-brand-lime text-white rounded-lg text-sm font-bold hover:bg-[#93B200] transition-colors shadow-lg shadow-brand-lime/20"
@@ -862,11 +957,27 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                   </div>
                   <div className="p-6 space-y-6">
                     <div className="flex items-center gap-6">
-                      <div className="w-20 h-20 bg-brand-lime rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                        AU
+                      <div className="w-20 h-20 bg-brand-lime rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                        {userAvatar ? (
+                          <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          'AU'
+                        )}
                       </div>
                       <div>
-                        <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">Change Avatar</button>
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          onChange={handleAvatarChange} 
+                          className="hidden" 
+                          accept="image/*"
+                        />
+                        <button 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors"
+                        >
+                          Change Avatar
+                        </button>
                         <p className="text-xs text-slate-400 mt-2">JPG, GIF or PNG. Max size of 800K</p>
                       </div>
                     </div>
