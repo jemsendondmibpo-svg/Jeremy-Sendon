@@ -237,81 +237,111 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }: { onLogin: (user: User) => v
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#F9FAFB]">
-      {/* Logo Section */}
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center mb-4">
-          <img 
-            src="https://cdn.digitalmindsbpo.com/storage/2021/11/cropped-Digital_Minds_Logo_Original.png" 
-            alt="Digital Minds Logo" 
-            className="h-24 w-auto object-contain"
-            referrerPolicy="no-referrer"
-          />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#F9FAFB]">
+      {/* Left Side: Image */}
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        <img 
+          src="https://prstation-dev.s3.ap-northeast-1.amazonaws.com/uploads/companies/336/1724250725.jpg/PthOW1RBwXeQstR8lgCcitE5tGGgMD6OHbr9n0jZ.jpg" 
+          alt="Login Background" 
+          className="absolute inset-0 w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-brand-lime/20 backdrop-blur-[1px]"></div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-white bg-black/40 backdrop-blur-[2px]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="text-center max-w-lg"
+          >
+            <h2 className="text-6xl font-bold mb-6 font-display leading-[1.1] tracking-tight drop-shadow-lg">
+              Streamline Your<br />
+              <span className="text-brand-lime">Inventory Flow</span>
+            </h2>
+            <p className="text-xl opacity-90 font-medium leading-relaxed drop-shadow-md">
+              The most efficient way to manage your assets, track stock levels, and generate professional reports.
+            </p>
+          </motion.div>
         </div>
-        <h1 className="text-slate-500 font-semibold text-lg tracking-tight">Inventory Management System</h1>
-        <p className="text-slate-400 text-sm mt-1 font-medium">Efficient • Reliable • Professional</p>
       </div>
 
-      {/* Login Card */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white p-8 rounded-2xl w-full max-w-md card-shadow border border-slate-100"
-      >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg">
-              {error}
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2 tracking-tight">Email Address</label>
-            <input 
-              type="email" 
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+      {/* Right Side: Form */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 overflow-y-auto">
+        {/* Logo Section */}
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="https://cdn.digitalmindsbpo.com/storage/2021/11/cropped-Digital_Minds_Logo_Original.png" 
+              alt="Digital Minds Logo" 
+              className="h-20 lg:h-24 w-auto object-contain"
+              referrerPolicy="no-referrer"
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-            <input 
-              type="password" 
-              placeholder="Enter your password"
-              className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button 
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20 disabled:opacity-50"
-          >
-            {isLoading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="mt-8 text-center space-y-4">
-          <button className="text-brand-lime font-semibold text-sm hover:underline">Forgot your password?</button>
-          <p className="text-slate-500 text-sm">
-            Don't have an account? <button onClick={onNavigateToSignUp} className="text-brand-lime font-semibold hover:underline">Sign up</button>
-          </p>
+          <h1 className="text-slate-500 font-semibold text-lg tracking-tight">Inventory Management System</h1>
+          <p className="text-slate-400 text-sm mt-1 font-medium">Efficient • Reliable • Professional</p>
         </div>
-      </motion.div>
 
-      {/* Footer */}
-      <div className="mt-12 text-center text-slate-400 text-xs space-y-4">
-        <p>© 2026 Digital Minds BPO Services Inc. All rights reserved.</p>
-        <div className="flex items-center justify-center gap-4">
-          <button className="hover:text-slate-600 transition-colors">Privacy Policy</button>
-          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-          <button className="hover:text-slate-600 transition-colors">Terms of Service</button>
-          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-          <button className="hover:text-slate-600 transition-colors">Contact Support</button>
+        {/* Login Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 rounded-2xl w-full max-w-md card-shadow border border-slate-100"
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg">
+                {error}
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2 tracking-tight">Email Address</label>
+              <input 
+                type="email" 
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+              <input 
+                type="password" 
+                placeholder="Enter your password"
+                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20 disabled:opacity-50"
+            >
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center space-y-4">
+            <button className="text-brand-lime font-semibold text-sm hover:underline">Forgot your password?</button>
+            <p className="text-slate-500 text-sm">
+              Don't have an account? <button onClick={onNavigateToSignUp} className="text-brand-lime font-semibold hover:underline">Sign up</button>
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-slate-400 text-xs space-y-4">
+          <p>© 2026 Digital Minds BPO Services Inc. All rights reserved.</p>
+          <div className="flex items-center justify-center gap-4">
+            <button className="hover:text-slate-600 transition-colors">Privacy Policy</button>
+            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+            <button className="hover:text-slate-600 transition-colors">Terms of Service</button>
+            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+            <button className="hover:text-slate-600 transition-colors">Contact Support</button>
+          </div>
         </div>
       </div>
     </div>
@@ -349,92 +379,122 @@ const SignUpPage = ({ onSignUp, onNavigateToLogin }: { onSignUp: (user: User) =>
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#F9FAFB]">
-      {/* Logo Section */}
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center mb-4">
-          <img 
-            src="https://cdn.digitalmindsbpo.com/storage/2021/11/cropped-Digital_Minds_Logo_Original.png" 
-            alt="Digital Minds Logo" 
-            className="h-24 w-auto object-contain"
-            referrerPolicy="no-referrer"
-          />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#F9FAFB]">
+      {/* Left Side: Image */}
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        <img 
+          src="https://prstation-dev.s3.ap-northeast-1.amazonaws.com/uploads/companies/336/1724250725.jpg/PthOW1RBwXeQstR8lgCcitE5tGGgMD6OHbr9n0jZ.jpg" 
+          alt="Signup Background" 
+          className="absolute inset-0 w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-brand-lime/20 backdrop-blur-[1px]"></div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-white bg-black/40 backdrop-blur-[2px]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="text-center max-w-lg"
+          >
+            <h2 className="text-6xl font-bold mb-6 font-display leading-[1.1] tracking-tight drop-shadow-lg">
+              Join Our Professional<br />
+              <span className="text-brand-lime">Network</span>
+            </h2>
+            <p className="text-xl opacity-90 font-medium leading-relaxed drop-shadow-md">
+              Create an account to start managing your inventory with our state-of-the-art system.
+            </p>
+          </motion.div>
         </div>
-        <h1 className="text-slate-500 font-semibold text-lg tracking-tight">Inventory Management System</h1>
-        <p className="text-slate-400 text-sm mt-1 font-medium">Efficient • Reliable • Professional</p>
       </div>
 
-      {/* Sign Up Card */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white p-8 rounded-2xl w-full max-w-md card-shadow border border-slate-100"
-      >
-        <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center tracking-tight">Create Account</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg">
-              {error}
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2 tracking-tight">Full Name</label>
-            <input 
-              type="text" 
-              placeholder="Enter your full name"
-              className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
+      {/* Right Side: Form */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 overflow-y-auto">
+        {/* Logo Section */}
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="https://cdn.digitalmindsbpo.com/storage/2021/11/cropped-Digital_Minds_Logo_Original.png" 
+              alt="Digital Minds Logo" 
+              className="h-20 lg:h-24 w-auto object-contain"
+              referrerPolicy="no-referrer"
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
-            <input 
-              type="email" 
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-            <input 
-              type="password" 
-              placeholder="Create a password"
-              className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button 
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20 mt-2 disabled:opacity-50"
-          >
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
-          </button>
-        </form>
-
-        <div className="mt-8 text-center">
-          <p className="text-slate-500 text-sm">
-            Already have an account? <button onClick={onNavigateToLogin} className="text-brand-lime font-semibold hover:underline">Sign in</button>
-          </p>
+          <h1 className="text-slate-500 font-semibold text-lg tracking-tight">Inventory Management System</h1>
+          <p className="text-slate-400 text-sm mt-1 font-medium">Efficient • Reliable • Professional</p>
         </div>
-      </motion.div>
 
-      {/* Footer */}
-      <div className="mt-12 text-center text-slate-400 text-xs space-y-4">
-        <p>© 2026 Digital Minds BPO Services Inc. All rights reserved.</p>
-        <div className="flex items-center justify-center gap-4">
-          <button className="hover:text-slate-600 transition-colors">Privacy Policy</button>
-          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-          <button className="hover:text-slate-600 transition-colors">Terms of Service</button>
-          <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-          <button className="hover:text-slate-600 transition-colors">Contact Support</button>
+        {/* Sign Up Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-8 rounded-2xl w-full max-w-md card-shadow border border-slate-100"
+        >
+          <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center tracking-tight">Create Account</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg">
+                {error}
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2 tracking-tight">Full Name</label>
+              <input 
+                type="text" 
+                placeholder="Enter your full name"
+                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
+              <input 
+                type="email" 
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+              <input 
+                type="password" 
+                placeholder="Create a password"
+                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime transition-all"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20 mt-2 disabled:opacity-50"
+            >
+              {isLoading ? 'Creating Account...' : 'Sign Up'}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-slate-500 text-sm">
+              Already have an account? <button onClick={onNavigateToLogin} className="text-brand-lime font-semibold hover:underline">Sign in</button>
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-slate-400 text-xs space-y-4">
+          <p>© 2026 Digital Minds BPO Services Inc. All rights reserved.</p>
+          <div className="flex items-center justify-center gap-4">
+            <button className="hover:text-slate-600 transition-colors">Privacy Policy</button>
+            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+            <button className="hover:text-slate-600 transition-colors">Terms of Service</button>
+            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+            <button className="hover:text-slate-600 transition-colors">Contact Support</button>
+          </div>
         </div>
       </div>
     </div>

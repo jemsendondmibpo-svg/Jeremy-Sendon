@@ -19,7 +19,8 @@ db.exec(`
     quantity INTEGER NOT NULL,
     minStock INTEGER NOT NULL,
     price REAL NOT NULL,
-    status TEXT NOT NULL
+    status TEXT NOT NULL,
+    location TEXT
   );
 
   CREATE TABLE IF NOT EXISTS activity_log (
@@ -43,13 +44,13 @@ db.exec(`
 // Seed data if empty
 const count = db.prepare("SELECT count(*) as count FROM inventory").get() as { count: number };
 if (count.count === 0) {
-  const insert = db.prepare("INSERT INTO inventory (id, name, sku, category, quantity, minStock, price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+  const insert = db.prepare("INSERT INTO inventory (id, name, sku, category, quantity, minStock, price, status, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
   const seedData = [
-    ['1', 'Dell OptiPlex 7090', 'SYS-DL-001', 'System Unit', 15, 5, 1200, 'In Stock'],
-    ['2', 'Samsung 27" Odyssey', 'MON-SM-002', 'Monitor', 8, 10, 350, 'Low Stock'],
-    ['3', 'Logitech G Pro X', 'KBD-LG-003', 'Keyboard', 25, 5, 129, 'In Stock'],
-    ['4', 'Razer DeathAdder V3', 'MSE-RZ-004', 'Mouse', 0, 5, 69, 'Out of Stock'],
-    ['5', 'Jabra Evolve2 65', 'HDS-JB-005', 'Headset', 12, 3, 249, 'In Stock'],
+    ['1', 'Dell OptiPlex 7090', 'SYS-DL-001', 'System Unit', 15, 5, 1200, 'In Stock', '10'],
+    ['2', 'Samsung 27" Odyssey', 'MON-SM-002', 'Monitor', 8, 10, 350, 'Low Stock', '57'],
+    ['3', 'Logitech G Pro X', 'KBD-LG-003', 'Keyboard', 25, 5, 129, 'In Stock', '64'],
+    ['4', 'Razer DeathAdder V3', 'MSE-RZ-004', 'Mouse', 0, 5, 69, 'Out of Stock', '82'],
+    ['5', 'Jabra Evolve2 65', 'HDS-JB-005', 'Headset', 12, 3, 249, 'In Stock', '11'],
   ];
   for (const item of seedData) {
     insert.run(...item);
@@ -115,9 +116,9 @@ async function startServer() {
   });
 
   app.post("/api/inventory", (req, res) => {
-    const { id, name, sku, category, quantity, minStock, price, status } = req.body;
-    db.prepare("INSERT INTO inventory (id, name, sku, category, quantity, minStock, price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-      .run(id, name, sku, category, quantity, minStock, price, status);
+    const { id, name, sku, category, quantity, minStock, price, status, location } = req.body;
+    db.prepare("INSERT INTO inventory (id, name, sku, category, quantity, minStock, price, status, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .run(id, name, sku, category, quantity, minStock, price, status, location);
     
     db.prepare("INSERT INTO activity_log (user, action, item) VALUES (?, ?, ?)")
       .run("Admin", "Added new item", name);
@@ -127,12 +128,12 @@ async function startServer() {
 
   app.put("/api/inventory/:id", (req, res) => {
     const { id } = req.params;
-    const { name, sku, category, quantity, minStock, price, status } = req.body;
+    const { name, sku, category, quantity, minStock, price, status, location } = req.body;
     
     const oldItem = db.prepare("SELECT name FROM inventory WHERE id = ?").get(id) as { name: string };
     
-    db.prepare("UPDATE inventory SET name = ?, sku = ?, category = ?, quantity = ?, minStock = ?, price = ?, status = ? WHERE id = ?")
-      .run(name, sku, category, quantity, minStock, price, status, id);
+    db.prepare("UPDATE inventory SET name = ?, sku = ?, category = ?, quantity = ?, minStock = ?, price = ?, status = ?, location = ? WHERE id = ?")
+      .run(name, sku, category, quantity, minStock, price, status, location, id);
     
     db.prepare("INSERT INTO activity_log (user, action, item) VALUES (?, ?, ?)")
       .run("Admin", "Updated item", name || oldItem.name);
