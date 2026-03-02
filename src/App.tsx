@@ -56,11 +56,11 @@ interface InventoryItem {
 // --- Mock Data ---
 
 const INITIAL_ITEMS: InventoryItem[] = [
-  { id: '1', name: 'Dell Latitude 5420', sku: 'LAP-DL-001', category: 'Laptops', quantity: 45, minStock: 10, price: 850, status: 'In Stock' },
-  { id: '2', name: 'Logitech MX Master 3S', sku: 'ACC-LG-002', category: 'Accessories', quantity: 8, minStock: 15, price: 99, status: 'Low Stock' },
-  { id: '3', name: 'Samsung 27" Monitor', sku: 'MON-SM-003', category: 'Monitors', quantity: 0, minStock: 5, price: 249, status: 'Out of Stock' },
-  { id: '4', name: 'Herman Miller Aeron', sku: 'FUR-HM-004', category: 'Furniture', quantity: 12, minStock: 3, price: 1200, status: 'In Stock' },
-  { id: '5', name: 'Cisco C9200L Switch', sku: 'NET-CS-005', category: 'Networking', quantity: 4, minStock: 2, price: 2100, status: 'In Stock' },
+  { id: '1', name: 'Dell OptiPlex 7090', sku: 'SYS-DL-001', category: 'System Unit', quantity: 15, minStock: 5, price: 1200, status: 'In Stock' },
+  { id: '2', name: 'Samsung 27" Odyssey', sku: 'MON-SM-002', category: 'Monitor', quantity: 8, minStock: 10, price: 350, status: 'Low Stock' },
+  { id: '3', name: 'Logitech G Pro X', sku: 'KBD-LG-003', category: 'Keyboard', quantity: 25, minStock: 5, price: 129, status: 'In Stock' },
+  { id: '4', name: 'Razer DeathAdder V3', sku: 'MSE-RZ-004', category: 'Mouse', quantity: 0, minStock: 5, price: 69, status: 'Out of Stock' },
+  { id: '5', name: 'Jabra Evolve2 65', sku: 'HDS-JB-005', category: 'Headset', quantity: 12, minStock: 3, price: 249, status: 'In Stock' },
 ];
 
 // --- Helpers ---
@@ -140,11 +140,17 @@ const ItemModal = ({
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               >
                 <option value="">Select Category</option>
-                <option value="Laptops">Laptops</option>
-                <option value="Accessories">Accessories</option>
-                <option value="Monitors">Monitors</option>
-                <option value="Furniture">Furniture</option>
-                <option value="Networking">Networking</option>
+                <option value="System Unit">System Unit</option>
+                <option value="Monitor">Monitor</option>
+                <option value="Keyboard">Keyboard</option>
+                <option value="Mouse">Mouse</option>
+                <option value="Headset">Headset</option>
+                <option value="Webcam">Webcam</option>
+                <option value="RAM">RAM</option>
+                <option value="IP Phone">IP Phone</option>
+                <option value="Printer">Printer</option>
+                <option value="UPS">UPS</option>
+                <option value="Chair">Chair</option>
               </select>
             </div>
             <div>
@@ -450,15 +456,20 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   };
 
   // Chart Data
-  const categoryData = [
-    { name: 'Laptops', value: items.filter(i => i.category === 'Laptops').length },
-    { name: 'Accessories', value: items.filter(i => i.category === 'Accessories').length },
-    { name: 'Monitors', value: items.filter(i => i.category === 'Monitors').length },
-    { name: 'Furniture', value: items.filter(i => i.category === 'Furniture').length },
-    { name: 'Networking', value: items.filter(i => i.category === 'Networking').length },
+  const categories = [
+    'System Unit', 'Monitor', 'Keyboard', 'Mouse', 'Headset', 
+    'Webcam', 'RAM', 'IP Phone', 'Printer', 'UPS', 'Chair'
   ];
 
-  const COLORS = ['#A4C600', '#1A1A1A', '#64748B', '#94A3B8', '#CBD5E1'];
+  const categoryData = categories.map(cat => ({
+    name: cat,
+    value: items.filter(i => i.category === cat).length
+  })).filter(data => data.value > 0);
+
+  const COLORS = [
+    '#A4C600', '#1A1A1A', '#64748B', '#94A3B8', '#CBD5E1', 
+    '#E2E8F0', '#F1F5F9', '#334155', '#475569', '#1E293B', '#0F172A'
+  ];
 
   const stockTrendData = [
     { month: 'Jan', stock: 120 },
