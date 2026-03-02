@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Package, 
   LayoutDashboard, 
@@ -53,15 +53,12 @@ interface InventoryItem {
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
 }
 
-// --- Mock Data ---
-
-const INITIAL_ITEMS: InventoryItem[] = [
-  { id: '1', name: 'Dell OptiPlex 7090', sku: 'SYS-DL-001', category: 'System Unit', quantity: 15, minStock: 5, price: 1200, status: 'In Stock' },
-  { id: '2', name: 'Samsung 27" Odyssey', sku: 'MON-SM-002', category: 'Monitor', quantity: 8, minStock: 10, price: 350, status: 'Low Stock' },
-  { id: '3', name: 'Logitech G Pro X', sku: 'KBD-LG-003', category: 'Keyboard', quantity: 25, minStock: 5, price: 129, status: 'In Stock' },
-  { id: '4', name: 'Razer DeathAdder V3', sku: 'MSE-RZ-004', category: 'Mouse', quantity: 0, minStock: 5, price: 69, status: 'Out of Stock' },
-  { id: '5', name: 'Jabra Evolve2 65', sku: 'HDS-JB-005', category: 'Headset', quantity: 12, minStock: 3, price: 249, status: 'In Stock' },
-];
+interface User {
+  id: string;
+  fullName: string;
+  email: string;
+  avatar: string | null;
+}
 
 // --- Helpers ---
 
@@ -210,13 +207,33 @@ const ItemModal = ({
   );
 };
 
-const LoginPage = ({ onLogin, onNavigateToSignUp }: { onLogin: () => void, onNavigateToSignUp: () => void }) => {
+const LoginPage = ({ onLogin, onNavigateToSignUp }: { onLogin: (user: User) => void, onNavigateToSignUp: () => void }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        onLogin(data);
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      setError('Connection error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -242,6 +259,11 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }: { onLogin: () => void, onNav
         className="bg-white p-8 rounded-2xl w-full max-w-md card-shadow border border-slate-100"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2 tracking-tight">Email Address</label>
             <input 
@@ -266,9 +288,10 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }: { onLogin: () => void, onNav
           </div>
           <button 
             type="submit"
-            className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20"
+            disabled={isLoading}
+            className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20 disabled:opacity-50"
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
@@ -295,14 +318,34 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }: { onLogin: () => void, onNav
   );
 };
 
-const SignUpPage = ({ onSignUp, onNavigateToLogin }: { onSignUp: () => void, onNavigateToLogin: () => void }) => {
+const SignUpPage = ({ onSignUp, onNavigateToLogin }: { onSignUp: (user: User) => void, onNavigateToLogin: () => void }) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSignUp();
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        onSignUp(data);
+      } else {
+        setError(data.error || 'Signup failed');
+      }
+    } catch (err) {
+      setError('Connection error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -329,6 +372,11 @@ const SignUpPage = ({ onSignUp, onNavigateToLogin }: { onSignUp: () => void, onN
       >
         <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center tracking-tight">Create Account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-lg">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2 tracking-tight">Full Name</label>
             <input 
@@ -364,9 +412,10 @@ const SignUpPage = ({ onSignUp, onNavigateToLogin }: { onSignUp: () => void, onN
           </div>
           <button 
             type="submit"
-            className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20 mt-2"
+            disabled={isLoading}
+            className="w-full bg-brand-lime hover:bg-[#93B200] text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-lime/20 mt-2 disabled:opacity-50"
           >
-            Sign Up
+            {isLoading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 
@@ -392,8 +441,10 @@ const SignUpPage = ({ onSignUp, onNavigateToLogin }: { onSignUp: () => void, onN
   );
 };
 
-const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
-  const [items, setItems] = useState<InventoryItem[]>(INITIAL_ITEMS);
+const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () => void, onUpdateUser: (user: User) => void }) => {
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [filterStatus, setFilterStatus] = useState<string>('All');
@@ -401,10 +452,13 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'inventory' | 'reports' | 'settings'>('dashboard');
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | null>(user.avatar);
+  const [profileName, setProfileName] = useState(user.fullName);
+  const [profileEmail, setProfileEmail] = useState(user.email);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 800 * 1024) {
@@ -412,16 +466,76 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setUserAvatar(reader.result as string);
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        setUserAvatar(base64);
+        // Auto-save avatar
+        try {
+          const response = await fetch(`/api/users/${user.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...user, avatar: base64 }),
+          });
+          const updatedUser = await response.json();
+          onUpdateUser(updatedUser);
+        } catch (err) {
+          console.error('Failed to update avatar:', err);
+        }
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSavingProfile(true);
+    try {
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...user, fullName: profileName, email: profileEmail, avatar: userAvatar }),
+      });
+      const updatedUser = await response.json();
+      onUpdateUser(updatedUser);
+      alert('Profile updated successfully');
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      alert('Failed to update profile');
+    } finally {
+      setIsSavingProfile(false);
     }
   };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | undefined>(undefined);
+
+  useEffect(() => {
+    fetchInventory();
+    fetchActivity();
+  }, []);
+
+  const fetchInventory = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/inventory');
+      const data = await response.json();
+      setItems(data);
+    } catch (error) {
+      console.error('Failed to fetch inventory:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchActivity = async () => {
+    try {
+      const response = await fetch('/api/activity');
+      const data = await response.json();
+      setActivities(data);
+    } catch (error) {
+      console.error('Failed to fetch activity:', error);
+    }
+  };
 
   const stats = {
     total: items.length,
@@ -439,33 +553,53 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const handleSaveItem = (data: Partial<InventoryItem>) => {
+  const handleSaveItem = async (data: Partial<InventoryItem>) => {
     const status = calculateStatus(data.quantity || 0, data.minStock || 0);
     
-    if (editingItem) {
-      setItems(items.map(item => 
-        item.id === editingItem.id ? { ...item, ...data, status } as InventoryItem : item
-      ));
-    } else {
-      const newItem: InventoryItem = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: data.name || '',
-        sku: data.sku || '',
-        category: data.category || '',
-        quantity: data.quantity || 0,
-        minStock: data.minStock || 0,
-        price: data.price || 0,
-        status
-      };
-      setItems([...items, newItem]);
+    try {
+      if (editingItem) {
+        const updatedItem = { ...editingItem, ...data, status };
+        await fetch(`/api/inventory/${editingItem.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedItem),
+        });
+      } else {
+        const newItem: InventoryItem = {
+          id: Math.random().toString(36).substr(2, 9),
+          name: data.name || '',
+          sku: data.sku || '',
+          category: data.category || '',
+          quantity: data.quantity || 0,
+          minStock: data.minStock || 0,
+          price: data.price || 0,
+          status
+        };
+        await fetch('/api/inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newItem),
+        });
+      }
+      await fetchInventory();
+      await fetchActivity();
+    } catch (error) {
+      console.error('Failed to save item:', error);
     }
+    
     setIsModalOpen(false);
     setEditingItem(undefined);
   };
 
-  const handleDeleteItem = (id: string) => {
+  const handleDeleteItem = async (id: string) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      setItems(items.filter(item => item.id !== id));
+      try {
+        await fetch(`/api/inventory/${id}`, { method: 'DELETE' });
+        await fetchInventory();
+        await fetchActivity();
+      } catch (error) {
+        console.error('Failed to delete item:', error);
+      }
     }
   };
 
@@ -628,14 +762,14 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             
             <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-slate-200">
               <div className="text-right hidden lg:block">
-                <p className="text-sm font-bold text-slate-800">Admin User</p>
+                <p className="text-sm font-bold text-slate-800">{user.fullName}</p>
                 <p className="text-xs text-slate-500">Inventory Manager</p>
               </div>
               <div className="w-8 h-8 lg:w-10 lg:h-10 bg-brand-lime rounded-full flex items-center justify-center text-white font-bold text-sm lg:text-base overflow-hidden">
                 {userAvatar ? (
                   <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  'AU'
+                  user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
                 )}
               </div>
             </div>
@@ -643,7 +777,15 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-8">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 relative">
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-brand-lime border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-sm font-bold text-slate-600">Loading Database...</p>
+              </div>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
               <motion.div
@@ -718,24 +860,28 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <button className="text-brand-lime text-sm font-bold hover:underline">View All</button>
                   </div>
                   <div className="divide-y divide-slate-100">
-                    {[
-                      { user: 'AU', action: 'Added new item', item: 'Dell Latitude 5420', time: '2 hours ago' },
-                      { user: 'JD', action: 'Updated quantity', item: 'Logitech MX Master', time: '5 hours ago' },
-                      { user: 'SM', action: 'Deleted item', item: 'Old Projector', time: '1 day ago' },
-                    ].map((activity, i) => (
-                      <div key={i} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-sm">
-                          {activity.user}
+                    {activities.length > 0 ? (
+                      activities.map((activity, i) => (
+                        <div key={i} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-sm">
+                            {activity.user[0]}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm text-slate-800">
+                              <span className="font-bold">{activity.user}</span> {activity.action} <span className="font-bold text-brand-lime">{activity.item}</span>
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {new Date(activity.timestamp).toLocaleString()}
+                            </p>
+                          </div>
+                          <ChevronRight size={16} className="text-slate-300" />
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-slate-800">
-                            <span className="font-bold">Admin</span> {activity.action} <span className="font-bold text-brand-lime">{activity.item}</span>
-                          </p>
-                          <p className="text-xs text-slate-400">{activity.time}</p>
-                        </div>
-                        <ChevronRight size={16} className="text-slate-300" />
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-slate-400 text-sm italic">
+                        No recent activity recorded.
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -961,7 +1107,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                         {userAvatar ? (
                           <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
-                          'AU'
+                          user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
                         )}
                       </div>
                       <div>
@@ -985,11 +1131,21 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Full Name</label>
-                        <input type="text" defaultValue="Admin User" className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-brand-lime/20" />
+                        <input 
+                          type="text" 
+                          value={profileName} 
+                          onChange={(e) => setProfileName(e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-brand-lime/20" 
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Email Address</label>
-                        <input type="email" defaultValue="admin@digitalminds.com" className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-brand-lime/20" />
+                        <input 
+                          type="email" 
+                          value={profileEmail} 
+                          onChange={(e) => setProfileEmail(e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-brand-lime/20" 
+                        />
                       </div>
                     </div>
                   </div>
@@ -1027,8 +1183,12 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
                 
                 <div className="flex justify-end">
-                  <button className="px-8 py-3 bg-brand-lime text-white rounded-lg font-bold hover:bg-[#93B200] transition-colors shadow-lg shadow-brand-lime/20">
-                    Save All Changes
+                  <button 
+                    onClick={handleSaveProfile}
+                    disabled={isSavingProfile}
+                    className="px-8 py-3 bg-brand-lime text-white rounded-lg font-bold hover:bg-[#93B200] transition-colors shadow-lg shadow-brand-lime/20 disabled:opacity-50"
+                  >
+                    {isSavingProfile ? 'Saving...' : 'Save All Changes'}
                   </button>
                 </div>
               </motion.div>
@@ -1096,6 +1256,17 @@ const StatusBadge = ({ status }: { status: InventoryItem['status'] }) => {
 
 export default function App() {
   const [view, setView] = useState<'login' | 'signup' | 'dashboard'>('login');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const handleAuthSuccess = (user: User) => {
+    setCurrentUser(user);
+    setView('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setView('login');
+  };
 
   return (
     <div className="font-sans">
@@ -1108,7 +1279,7 @@ export default function App() {
             exit={{ opacity: 0 }}
           >
             <LoginPage 
-              onLogin={() => setView('dashboard')} 
+              onLogin={handleAuthSuccess} 
               onNavigateToSignUp={() => setView('signup')}
             />
           </motion.div>
@@ -1121,19 +1292,23 @@ export default function App() {
             exit={{ opacity: 0 }}
           >
             <SignUpPage 
-              onSignUp={() => setView('dashboard')} 
+              onSignUp={handleAuthSuccess} 
               onNavigateToLogin={() => setView('login')}
             />
           </motion.div>
         )}
-        {view === 'dashboard' && (
+        {view === 'dashboard' && currentUser && (
           <motion.div
             key="dashboard"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <Dashboard onLogout={() => setView('login')} />
+            <Dashboard 
+              user={currentUser} 
+              onLogout={handleLogout} 
+              onUpdateUser={setCurrentUser}
+            />
           </motion.div>
         )}
       </AnimatePresence>
