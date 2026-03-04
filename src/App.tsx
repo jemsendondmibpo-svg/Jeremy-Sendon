@@ -55,6 +55,7 @@ import {
 import jsPDF from 'jspdf';
 // @ts-ignore
 import autoTable from 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import { logoBase64 } from './logoBase64';
 
 // --- Types ---
@@ -116,6 +117,230 @@ const calculateStatus = (quantity: number, minStock: number): InventoryItem['sta
 };
 
 // --- Components ---
+
+const UpdateRequestModal = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit,
+  status
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onSubmit: (adminRemarks: string) => void,
+  status: 'Approved' | 'Rejected'
+}) => {
+  const [remarks, setRemarks] = useState('');
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+      >
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-xl font-bold text-slate-800 font-display">
+            {status === 'Approved' ? 'Approve Request' : 'Reject Request'}
+          </h3>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit(remarks);
+          setRemarks('');
+        }} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Admin Remarks (Optional)</label>
+            <textarea 
+              rows={3}
+              placeholder="Add any remarks or notes..."
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime outline-none resize-none"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <button 
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              className={`flex-1 px-4 py-2 text-white rounded-lg font-bold transition-colors shadow-lg ${
+                status === 'Approved' 
+                  ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' 
+                  : 'bg-red-500 hover:bg-red-600 shadow-red-500/20'
+              }`}
+            >
+              Confirm {status}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
+const MaintenanceRequestModal = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit,
+  item
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onSubmit: (remarks: string) => void,
+  item?: InventoryItem
+}) => {
+  const [remarks, setRemarks] = useState('');
+
+  if (!isOpen || !item) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+      >
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-xl font-bold text-slate-800 font-display">Request Maintenance</h3>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit(remarks);
+          setRemarks('');
+        }} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Asset Name</label>
+            <input 
+              type="text" 
+              disabled
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 outline-none"
+              value={item.name}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Remarks / Issue Description</label>
+            <textarea 
+              required
+              rows={3}
+              placeholder="Describe the issue..."
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime outline-none resize-none"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <button 
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg font-bold hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20"
+            >
+              Submit Request
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
+const AssetRequestModal = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onSubmit: (data: { workStationArea: string, itemName: string }) => void 
+}) => {
+  const [formData, setFormData] = useState({ workStationArea: '', itemName: '' });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+      >
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-xl font-bold text-slate-800 font-display">New Asset Request</h3>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit(formData);
+          setFormData({ workStationArea: '', itemName: '' });
+        }} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Work Station Area</label>
+            <input 
+              type="text" 
+              required
+              placeholder="Enter work station area"
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime outline-none"
+              value={formData.workStationArea}
+              onChange={(e) => setFormData({ ...formData, workStationArea: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Requested Asset Name</label>
+            <input 
+              type="text" 
+              required
+              placeholder="Enter requested asset name"
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime outline-none"
+              value={formData.itemName}
+              onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
+            />
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <button 
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              className="flex-1 px-4 py-2 bg-brand-lime text-white rounded-lg font-bold hover:bg-brand-lime/90 transition-colors shadow-lg shadow-brand-lime/20"
+            >
+              Submit Request
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
 
 const ItemModal = ({ 
   isOpen, 
@@ -219,7 +444,7 @@ const ItemModal = ({
                 onChange={(e) => setFormData({ ...formData, minStock: parseInt(e.target.value) || 0 })}
               />
             </div>
-            <div className="col-span-2">
+            <div>
               <label className="block text-sm font-bold text-slate-700 mb-1 tracking-tight">Price ($)</label>
               <input 
                 type="number" 
@@ -233,15 +458,13 @@ const ItemModal = ({
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1 tracking-tight">Location</label>
-              <select 
-                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime outline-none bg-white"
+              <input 
+                type="text"
+                placeholder="Enter location"
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-lime/20 focus:border-brand-lime outline-none"
                 value={formData.location || ''}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              >
-                <option value="" disabled>Select Location</option>
-                <option value="IT Department">IT Department</option>
-                <option value="HR Department">HR Department</option>
-              </select>
+              />
             </div>
             <div className="col-span-2">
               <label className="block text-sm font-bold text-slate-700 mb-1 tracking-tight">Description</label>
@@ -692,6 +915,9 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+  const [updateRequestData, setUpdateRequestData] = useState<{ id: string, status: 'Approved' | 'Rejected' } | null>(null);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'inventory' | 'assignments' | 'maintenance' | 'requests' | 'reports' | 'settings'>('dashboard');
   const [assignments, setAssignments] = useState<AssetAssignment[]>([]);
@@ -959,6 +1185,55 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
         startY = 95;
       }
 
+      // --- Charts Section ---
+      if (reportTitle === 'Full System Report' || reportTitle === 'Inventory Report' || reportTitle === 'Asset Summary Report') {
+        const pieChart = document.getElementById('pie-chart-container');
+        const barChart = document.getElementById('bar-chart-container');
+        
+        if (pieChart || barChart) {
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 41, 59);
+          doc.text('Data Visualizations', 14, startY);
+          startY += 8;
+
+          try {
+            if (pieChart && barChart) {
+              const canvas1 = await html2canvas(pieChart, { scale: 2, backgroundColor: '#ffffff' });
+              const canvas2 = await html2canvas(barChart, { scale: 2, backgroundColor: '#ffffff' });
+              
+              const imgData1 = canvas1.toDataURL('image/png');
+              const imgData2 = canvas2.toDataURL('image/png');
+              
+              const chartWidth = (pageWidth - 36) / 2;
+              const chartHeight = (chartWidth * canvas1.height) / canvas1.width;
+              
+              doc.addImage(imgData1, 'PNG', 14, startY, chartWidth, chartHeight);
+              doc.addImage(imgData2, 'PNG', pageWidth / 2 + 4, startY, chartWidth, chartHeight);
+              
+              startY += chartHeight + 15;
+            } else if (pieChart) {
+              const canvas = await html2canvas(pieChart, { scale: 2, backgroundColor: '#ffffff' });
+              const imgData = canvas.toDataURL('image/png');
+              const chartWidth = pageWidth - 28;
+              const chartHeight = (chartWidth * canvas.height) / canvas.width;
+              doc.addImage(imgData, 'PNG', 14, startY, chartWidth, chartHeight);
+              startY += chartHeight + 15;
+            } else if (barChart) {
+              const canvas = await html2canvas(barChart, { scale: 2, backgroundColor: '#ffffff' });
+              const imgData = canvas.toDataURL('image/png');
+              const chartWidth = pageWidth - 28;
+              const chartHeight = (chartWidth * canvas.height) / canvas.width;
+              doc.addImage(imgData, 'PNG', 14, startY, chartWidth, chartHeight);
+              startY += chartHeight + 15;
+            }
+          } catch (chartError) {
+            console.error('Failed to add charts to PDF:', chartError);
+            // Continue without charts if they fail
+          }
+        }
+      }
+
       // --- Table Data ---
       let tableColumn: string[] = [];
       let tableRows: any[] = [];
@@ -1156,54 +1431,6 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
       fetchActivity();
     } catch (error) {
       console.error('Failed to update request:', error);
-    }
-  };
-
-  const handleAssignAsset = async (item: InventoryItem) => {
-    const workStationArea = prompt('Enter work station area to assign this asset:');
-    if (!workStationArea) return;
-
-    try {
-      await fetch('/api/assignments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: Math.random().toString(36).substr(2, 9),
-          itemId: item.id,
-          itemName: item.name,
-          workStationArea,
-          status: 'Assigned'
-        }),
-      });
-      fetchAssignments();
-      fetchInventory();
-      fetchActivity();
-    } catch (error) {
-      console.error('Failed to assign asset:', error);
-    }
-  };
-
-  const handleRequestMaintenance = async (item: InventoryItem) => {
-    const remarks = prompt('Enter maintenance remarks:');
-    if (!remarks) return;
-
-    try {
-      await fetch('/api/maintenance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: Math.random().toString(36).substr(2, 9),
-          itemId: item.id,
-          itemName: item.name,
-          status: 'Pending',
-          remarks
-        }),
-      });
-      fetchMaintenance();
-      fetchInventory();
-      fetchActivity();
-    } catch (error) {
-      console.error('Failed to request maintenance:', error);
     }
   };
 
@@ -1440,7 +1667,7 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-800 mb-6 font-display">Stock by Category</h3>
-                    <div className="h-64">
+                    <div className="h-64" id="pie-chart-container">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -1472,7 +1699,7 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
 
                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-800 mb-6 font-display">Inventory Trend</h3>
-                    <div className="h-64">
+                    <div className="h-64" id="bar-chart-container">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={stockTrendData}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
@@ -1722,6 +1949,16 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
                                   <Edit2 size={16} />
                                 </button>
                                 <button 
+                                  onClick={() => {
+                                    setSelectedItem(item);
+                                    setIsMaintenanceModalOpen(true);
+                                  }}
+                                  className="p-2 hover:bg-amber-50 text-amber-600 rounded-lg transition-colors"
+                                  title="Request Maintenance"
+                                >
+                                  <Wrench size={16} />
+                                </button>
+                                <button 
                                   onClick={() => handleDeleteItem(item.id)}
                                   className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
                                 >
@@ -1964,8 +2201,15 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
                 className="space-y-6"
               >
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                  <div className="p-6 border-b border-slate-100">
+                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                     <h3 className="font-bold text-slate-800 font-display">Work Station Area Asset Requests</h3>
+                    <button 
+                      onClick={() => setIsRequestModalOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-brand-lime text-white rounded-lg font-bold hover:bg-brand-lime/90 transition-colors"
+                    >
+                      <Plus size={18} />
+                      <span>New Request</span>
+                    </button>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -1975,6 +2219,7 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
                           <th className="px-6 py-4 font-semibold">Requested Asset</th>
                           <th className="px-6 py-4 font-semibold">Request Date</th>
                           <th className="px-6 py-4 font-semibold">Status</th>
+                          <th className="px-6 py-4 font-semibold">Admin Remarks</th>
                           <th className="px-6 py-4 font-semibold text-right">Actions</th>
                         </tr>
                       </thead>
@@ -1993,18 +2238,21 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
                                 {request.status}
                               </span>
                             </td>
+                            <td className="px-6 py-4 text-slate-500 text-sm max-w-[200px] truncate" title={request.adminRemarks || ''}>
+                              {request.adminRemarks || '-'}
+                            </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 {request.status === 'Pending' && (
                                   <>
                                     <button 
-                                      onClick={() => handleUpdateRequest(request.id, 'Approved')}
+                                      onClick={() => setUpdateRequestData({ id: request.id, status: 'Approved' })}
                                       className="px-3 py-1 bg-emerald-500 text-white rounded text-xs font-bold"
                                     >
                                       Approve
                                     </button>
                                     <button 
-                                      onClick={() => handleUpdateRequest(request.id, 'Rejected')}
+                                      onClick={() => setUpdateRequestData({ id: request.id, status: 'Rejected' })}
                                       className="px-3 py-1 bg-red-500 text-white rounded text-xs font-bold"
                                     >
                                       Reject
@@ -2306,6 +2554,79 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
             item={selectedItem}
           />
 
+          <MaintenanceRequestModal
+            isOpen={isMaintenanceModalOpen}
+            onClose={() => setIsMaintenanceModalOpen(false)}
+            item={selectedItem}
+            onSubmit={async (remarks) => {
+              if (!selectedItem) return;
+              try {
+                await fetch('/api/maintenance', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    id: Math.random().toString(36).substr(2, 9),
+                    itemId: selectedItem.id,
+                    itemName: selectedItem.name,
+                    status: 'Pending',
+                    remarks
+                  })
+                });
+                fetchMaintenance();
+                fetchInventory();
+                fetchActivity();
+                setIsMaintenanceModalOpen(false);
+              } catch (error) {
+                console.error('Failed to request maintenance:', error);
+              }
+            }}
+          />
+
+          <AssetRequestModal
+            isOpen={isRequestModalOpen}
+            onClose={() => setIsRequestModalOpen(false)}
+            onSubmit={async (data) => {
+              try {
+                await fetch('/api/requests', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    id: Math.random().toString(36).substr(2, 9),
+                    workStationArea: data.workStationArea,
+                    itemName: data.itemName,
+                    status: 'Pending'
+                  })
+                });
+                fetchRequests();
+                fetchActivity();
+                setIsRequestModalOpen(false);
+              } catch (error) {
+                console.error('Failed to create request:', error);
+              }
+            }}
+          />
+
+          <UpdateRequestModal
+            isOpen={!!updateRequestData}
+            onClose={() => setUpdateRequestData(null)}
+            status={updateRequestData?.status || 'Approved'}
+            onSubmit={async (adminRemarks) => {
+              if (!updateRequestData) return;
+              try {
+                await fetch(`/api/requests/${updateRequestData.id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ status: updateRequestData.status, adminRemarks }),
+                });
+                fetchRequests();
+                fetchActivity();
+                setUpdateRequestData(null);
+              } catch (error) {
+                console.error('Failed to update request:', error);
+              }
+            }}
+          />
+
           {isAssignModalOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
               <motion.div 
@@ -2363,7 +2684,7 @@ const Dashboard = ({ user, onLogout, onUpdateUser }: { user: User, onLogout: () 
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">Work Station Area</label>
                     <input 
-                      type="text" 
+                      type="text"
                       name="workStationArea"
                       required
                       placeholder="Enter work station area"
